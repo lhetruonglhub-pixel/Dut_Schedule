@@ -15,8 +15,27 @@ const SPIDER_WIDTH = Math.min(width * 0.42, 155);
 const SPIDER_HEIGHT = SPIDER_WIDTH * (310 / 140);
 
 export default function SplashScreen({ onFinish }) {
+
+  // ==========================================
+  // ANIMATION VALUES
+  // ==========================================
+
   const spiderY = useRef(
     new Animated.Value(-SPIDER_HEIGHT - 40)
+  ).current;
+
+  const spiderScale = useRef(
+    new Animated.Value(0.94)
+  ).current;
+
+  // Rotation only — the pivot point is moved to the
+  // TOP of the image (see the transform trick below),
+  // so the head/shoulders stay anchored to the web and
+  // only the lower body arcs out. No more translateX
+  // sway, which was making the whole cutout slide
+  // sideways as one rigid block.
+  const spiderRotate = useRef(
+    new Animated.Value(0)
   ).current;
 
   const webHeight = useRef(
@@ -31,20 +50,24 @@ export default function SplashScreen({ onFinish }) {
     new Animated.Value(0)
   ).current;
 
-  const spiderScale = useRef(
-    new Animated.Value(0.94)
-  ).current;
+  const swingAnimation = useRef(null);
+
+
+  // ==========================================
+  // MAIN SPLASH ANIMATION
+  // ==========================================
 
   useEffect(() => {
+
+    let startTimer;
     let finishTimer;
 
-    /*
-     * ============================================
-     * 1. Trắng → vàng
-     * ============================================
-     */
+    // ========================================
+    // BACKGROUND
+    // ========================================
 
-    const startTimer = setTimeout(() => {
+    startTimer = setTimeout(() => {
+
       Animated.timing(backgroundOpacity, {
         toValue: 1,
         duration: 350,
@@ -52,11 +75,10 @@ export default function SplashScreen({ onFinish }) {
         useNativeDriver: false,
       }).start();
 
-      /*
-       * ============================================
-       * 2. Sợi tơ xuất hiện
-       * ============================================
-       */
+
+      // ======================================
+      // WEB DROPS DOWN
+      // ======================================
 
       Animated.timing(webHeight, {
         toValue: height * 0.30,
@@ -65,13 +87,13 @@ export default function SplashScreen({ onFinish }) {
         useNativeDriver: false,
       }).start();
 
-      /*
-       * ============================================
-       * 3. Spider-Man rơi xuống
-       * ============================================
-       */
+
+      // ======================================
+      // SPIDER FALLS DOWN
+      // ======================================
 
       Animated.parallel([
+
         Animated.timing(spiderY, {
           toValue: height * 0.18,
           duration: 1250,
@@ -85,13 +107,50 @@ export default function SplashScreen({ onFinish }) {
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
+
       ]).start(() => {
 
-        /*
-         * ========================================
-         * 4. Hiện chữ
-         * ========================================
-         */
+        // ====================================
+        // START SWINGING (damped pendulum,
+        // pivoting from the head/web point)
+        // Big fast swings first, then settles
+        // into a slow gentle idle sway.
+        // ====================================
+
+        const swingTo = (toValue, duration) =>
+          Animated.timing(spiderRotate, {
+            toValue,
+            duration,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          });
+
+        const idleSway = () =>
+          Animated.loop(
+            Animated.sequence([
+              swingTo(0.3, 1100),
+              swingTo(-0.3, 2200),
+              swingTo(0, 1100),
+            ])
+          );
+
+        swingAnimation.current = Animated.sequence([
+          // big opening kick, slightly overshooting
+          swingTo(-1, 550),
+          swingTo(1.15, 900),
+          swingTo(-0.8, 850),
+          swingTo(0.5, 750),
+          swingTo(-0.28, 650),
+          // settle into a gentle continuous sway
+          idleSway(),
+        ]);
+
+        swingAnimation.current.start();
+
+
+        // ====================================
+        // SHOW TEXT
+        // ====================================
 
         Animated.timing(textOpacity, {
           toValue: 1,
@@ -100,19 +159,25 @@ export default function SplashScreen({ onFinish }) {
           useNativeDriver: true,
         }).start();
 
-        /*
-         * ========================================
-         * 5. Treo giữa màn hình
-         * ========================================
-         */
+
+        // ====================================
+        // WAIT
+        // ====================================
 
         finishTimer = setTimeout(() => {
 
-          /*
-           * ======================================
-           * 6. Chữ biến mất
-           * ======================================
-           */
+          // ================================
+          // STOP SWING
+          // ================================
+
+          if (swingAnimation.current) {
+            swingAnimation.current.stop();
+          }
+
+
+          // ================================
+          // HIDE TEXT
+          // ================================
 
           Animated.timing(textOpacity, {
             toValue: 0,
@@ -120,13 +185,13 @@ export default function SplashScreen({ onFinish }) {
             useNativeDriver: true,
           }).start();
 
-          /*
-           * ======================================
-           * 7. Spider-Man kéo lên
-           * ======================================
-           */
+
+          // ================================
+          // SPIDER GOES UP
+          // ================================
 
           Animated.parallel([
+
             Animated.timing(spiderY, {
               toValue: -SPIDER_HEIGHT - 80,
               duration: 1050,
@@ -140,49 +205,74 @@ export default function SplashScreen({ onFinish }) {
               easing: Easing.in(Easing.cubic),
               useNativeDriver: false,
             }),
+
+            Animated.timing(spiderRotate, {
+              toValue: 0,
+              duration: 250,
+              useNativeDriver: true,
+            }),
+
           ]).start(() => {
 
-            /*
-             * ==================================
-             * 8. Kết thúc splash
-             * ==================================
-             */
+            // ==============================
+            // FINISH
+            // ==============================
 
             setTimeout(() => {
+
               if (onFinish) {
                 onFinish();
               }
+
             }, 100);
 
           });
 
         }, 3000);
+
       });
 
     }, 900);
 
-    return () => {
-      clearTimeout(startTimer);
 
-      if (finishTimer) {
-        clearTimeout(finishTimer);
+    // ==========================================
+    // CLEANUP
+    // ==========================================
+
+    return () => {
+
+      clearTimeout(startTimer);
+      clearTimeout(finishTimer);
+
+      if (swingAnimation.current) {
+        swingAnimation.current.stop();
       }
+
     };
-  }, [
-    backgroundOpacity,
-    spiderScale,
-    spiderY,
-    textOpacity,
-    webHeight,
-    onFinish,
-  ]);
+
+  }, []);
+
+
+  // ==========================================
+  // ROTATION
+  // ==========================================
+
+  const rotate = spiderRotate.interpolate({
+    inputRange: [-1, 0, 1],
+    outputRange: ['-11deg', '0deg', '11deg'],
+  });
+
+
+  // ==========================================
+  // UI
+  // ==========================================
 
   return (
     <View style={styles.container}>
 
-      {/* ==========================================
-          NỀN VÀNG
-          ========================================== */}
+      {/* ======================================
+          YELLOW BACKGROUND
+          ====================================== */}
 
       <Animated.View
         style={[
@@ -193,9 +283,12 @@ export default function SplashScreen({ onFinish }) {
         ]}
       />
 
-      {/* ==========================================
-          SỢI TƠ
-          ========================================== */}
+
+      {/* ======================================
+          WEB — stays straight, it's anchored
+          to a fixed point above, only the
+          spider swings from the bottom of it
+          ====================================== */}
 
       <Animated.View
         style={[
@@ -208,34 +301,54 @@ export default function SplashScreen({ onFinish }) {
         <View style={styles.webLine} />
       </Animated.View>
 
-      {/* ==========================================
-          SPIDER-MAN
-          ========================================== */}
 
-      <Animated.Image
-        source={require('../assets/spiderman_cutout.png')}
-        resizeMode="contain"
+      {/* ======================================
+          SPIDER-MAN
+          The outer Animated.View handles fall +
+          scale + the pivot-at-top rotation trick:
+          translateY(-H/2) -> rotate -> translateY(H/2)
+          moves the rotation anchor from the image's
+          center up to its top edge (where the web
+          attaches), so the head barely moves and the
+          body/legs are what visibly arc out — a much
+          more natural "hanging from a thread" swing.
+          ====================================== */}
+
+      <Animated.View
         style={[
-          styles.spider,
+          styles.spiderPivot,
           {
             width: SPIDER_WIDTH,
             height: SPIDER_HEIGHT,
 
             transform: [
-              {
-                translateY: spiderY,
-              },
-              {
-                scale: spiderScale,
-              },
+              { translateY: spiderY },
+              { scale: spiderScale },
+              { translateY: -SPIDER_HEIGHT / 2 },
+              { rotate },
+              { translateY: SPIDER_HEIGHT / 2 },
             ],
           },
         ]}
-      />
+      >
 
-      {/* ==========================================
+        <Animated.Image
+          source={require('../assets/spiderman_cutout.png')}
+          resizeMode="contain"
+          // resizeMethod="resize" hints Android to
+          // re-sample on decode instead of just
+          // stretching the bitmap — helps sharpness
+          // when the source PNG is scaled down.
+          resizeMethod="resize"
+          style={styles.spiderImage}
+        />
+
+      </Animated.View>
+
+
+      {/* ======================================
           TEXT
-          ========================================== */}
+          ====================================== */}
 
       <Animated.View
         style={[
@@ -245,22 +358,27 @@ export default function SplashScreen({ onFinish }) {
           },
         ]}
       >
-<Text style={styles.title}>
-  I am DUTer
-</Text>
+
+        <Text style={styles.title}>
+          I am <Text style={styles.redText}>DUTer</Text>
+        </Text>
+
       </Animated.View>
 
     </View>
   );
 }
 
+
+// ==============================================
+// STYLES
+// ==============================================
+
 const styles = StyleSheet.create({
 
-  /*
-   * ==============================================
-   * ROOT
-   * ==============================================
-   */
+  // ============================================
+  // CONTAINER
+  // ============================================
 
   container: {
     position: 'absolute',
@@ -270,8 +388,8 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
 
-    width: width,
-    height: height,
+    width,
+    height,
 
     backgroundColor: '#FFFFFF',
 
@@ -285,11 +403,9 @@ const styles = StyleSheet.create({
   },
 
 
-  /*
-   * ==============================================
-   * YELLOW BACKGROUND
-   * ==============================================
-   */
+  // ============================================
+  // YELLOW
+  // ============================================
 
   yellowBackground: {
     position: 'absolute',
@@ -303,11 +419,9 @@ const styles = StyleSheet.create({
   },
 
 
-  /*
-   * ==============================================
-   * WEB CONTAINER
-   * ==============================================
-   */
+  // ============================================
+  // WEB
+  // ============================================
 
   web: {
     position: 'absolute',
@@ -323,12 +437,6 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
 
-
-  /*
-   * ==============================================
-   * WEB LINE
-   * ==============================================
-   */
 
   webLine: {
     width: 1.5,
@@ -350,13 +458,11 @@ const styles = StyleSheet.create({
   },
 
 
-  /*
-   * ==============================================
-   * SPIDER
-   * ==============================================
-   */
+  // ============================================
+  // SPIDER PIVOT WRAPPER
+  // ============================================
 
-  spider: {
+  spiderPivot: {
     position: 'absolute',
 
     left: (width - SPIDER_WIDTH) / 2,
@@ -364,59 +470,55 @@ const styles = StyleSheet.create({
     top: 0,
 
     zIndex: 3,
-
-    opacity: 1,
   },
 
 
-  /*
-   * ==============================================
-   * MESSAGE
-   * ==============================================
-   */
+  // ============================================
+  // SPIDER IMAGE
+  // ============================================
 
-message: {
-  position: 'absolute',
-  top: height * 0.78,
-
-  left: 0,
-  right: 0,
-
-  alignItems: 'center',
-  justifyContent: 'center',
-
-  zIndex: 5,
-},
-
-title: {
-  color: '#FFFFFF',
-
-  fontSize: 18,
-  fontWeight: '700',
-
-  textAlign: 'center',
-
-  textShadowColor: 'rgba(0,0,0,0.55)',
-  textShadowOffset: {
-    width: 0,
-    height: 1,
+  spiderImage: {
+    width: '100%',
+    height: '100%',
   },
-  textShadowRadius: 2,
-},
 
+
+  // ============================================
+  // TEXT CONTAINER
+  // ============================================
+
+  message: {
+    position: 'absolute',
+
+    top: height * 0.78,
+
+    left: 0,
+    right: 0,
+
+    alignItems: 'center',
+
+    justifyContent: 'center',
+
+    zIndex: 5,
+  },
+
+
+  // ============================================
+  // TITLE
+  // ============================================
 
   title: {
-    color: '#FFFFFF',
+    color: '#111111',
 
-    fontSize: 13,
+    fontSize: 22,
 
-    fontWeight: '700',
+    fontWeight: '800',
 
     textAlign: 'center',
 
-    letterSpacing: 0.1,
+    letterSpacing: 0.3,
 
-    textShadowColor: 'rgba(0,0,0,0.55)',
+    textShadowColor: 'rgba(255,255,255,0.45)',
 
     textShadowOffset: {
       width: 0,
@@ -427,27 +529,14 @@ title: {
   },
 
 
-  subtitle: {
-    marginTop: 2,
+  // ============================================
+  // DUTER
+  // ============================================
 
-    color: '#FFFFFF',
+  redText: {
+    color: '#C62828',
 
-    fontSize: 12,
-
-    fontWeight: '600',
-
-    textAlign: 'center',
-
-    letterSpacing: 0.1,
-
-    textShadowColor: 'rgba(0,0,0,0.55)',
-
-    textShadowOffset: {
-      width: 0,
-      height: 1,
-    },
-
-    textShadowRadius: 2,
+    fontWeight: '900',
   },
 
 });
