@@ -12,7 +12,20 @@ import ExamScreen from './src/screens/ExamScreen';
 import GradeScreen from './src/screens/GradeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 
+// ==========================================
+// CHỈ THÊM SPLASH SCREEN
+// ==========================================
+import SplashScreen from './src/components/SplashScreen';
+
 export default function App() {
+  // ==========================================
+  // CHỈ THÊM STATE NÀY
+  // ==========================================
+  const [showSplash, setShowSplash] = useState(true);
+
+  // ==========================================
+  // TOÀN BỘ CODE CŨ CỦA BẠN - GIỮ NGUYÊN
+  // ==========================================
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userStudentId, setUserStudentId] = useState('');
   const [studentData, setStudentData] = useState(EMPTY_STUDENT_DATA);
@@ -91,6 +104,22 @@ export default function App() {
     }
   };
 
+  // ==========================================
+  // SPLASH - PHẦN DUY NHẤT CHÈN VÀO
+  // ==========================================
+  if (showSplash) {
+    return (
+      <SplashScreen
+        onFinish={() => {
+          setShowSplash(false);
+        }}
+      />
+    );
+  }
+
+  // ==========================================
+  // LOGIN - GIỮ NGUYÊN 100%
+  // ==========================================
   if (!isLoggedIn) {
     return (
       <LoginScreen
@@ -105,18 +134,27 @@ export default function App() {
     );
   }
 
+  // ==========================================
+  // MAIN APP - GIỮ NGUYÊN 100%
+  // ==========================================
   return (
     <SafeAreaView
       style={[
         styles.appContainer,
-        { backgroundColor: darkMode ? DARK.background : LIGHT.background },
+        {
+          backgroundColor: darkMode
+            ? DARK.background
+            : LIGHT.background,
+        },
       ]}
     >
       <TabView
         navigationState={{ index, routes }}
         renderScene={renderScene}
         onIndexChange={handleTabChange}
-        initialLayout={{ width: Dimensions.get('window').width }}
+        initialLayout={{
+          width: Dimensions.get('window').width,
+        }}
         renderTabBar={() => null}
         swipeEnabled={true}
         lazy={false}
