@@ -113,6 +113,52 @@ const ScheduleScreen = ({ isActive, resetSignal, darkMode, studentData }) => {
     return result;
   }, [scheduleData, selectedDate, darkMode]);
 
+  // ==========================================
+  // CALENDAR THEME
+  // Built as its own object (not inline) so it's
+  // easy to see everything that needs to flip
+  // between light/dark. A few keys that are easy
+  // to forget — textSectionTitleDisabledColor,
+  // disabledArrowColor, indicatorColor — are the
+  // usual culprits when parts of the calendar stay
+  // light-mode-colored after toggling dark mode.
+  // ==========================================
+  const calendarTheme = useMemo(
+    () => ({
+      backgroundColor: theme.card,
+      calendarBackground: theme.card,
+
+      textSectionTitleColor: theme.secondary,
+      textSectionTitleDisabledColor: darkMode ? '#3A3F47' : '#D9D9D9',
+
+      selectedDayBackgroundColor: darkMode ? '#FFFFFF' : '#20242B',
+      selectedDayTextColor: darkMode ? '#20242B' : '#FFFFFF',
+
+      todayTextColor: darkMode ? '#FFFFFF' : '#20242B',
+      todayBackgroundColor: darkMode ? '#2A2F37' : '#EFEFEF',
+
+      dayTextColor: theme.primary,
+      textDisabledColor: darkMode ? '#4A4F58' : '#C7C7C7',
+
+      dotColor: '#8D76A8',
+      selectedDotColor: darkMode ? '#20242B' : '#FFFFFF',
+
+      arrowColor: theme.primary,
+      disabledArrowColor: darkMode ? '#3A3F47' : '#D9D9D9',
+
+      indicatorColor: theme.primary,
+
+      monthTextColor: theme.primary,
+      textMonthFontSize: 19,
+      textMonthFontWeight: '900',
+      textDayFontSize: 13,
+      textDayFontWeight: '600',
+      textDayHeaderFontSize: 10,
+      textDayHeaderFontWeight: '800',
+    }),
+    [theme, darkMode]
+  );
+
   return (
     <View style={[styles.sceneContainer, { backgroundColor: theme.background }]}>
       <ScrollView
@@ -130,9 +176,21 @@ const ScheduleScreen = ({ isActive, resetSignal, darkMode, studentData }) => {
             styles.calendarCard,
             { backgroundColor: theme.card, borderColor: theme.border },
             darkMode && styles.calendarCardDark,
+            // Belt-and-suspenders: even if styles.js
+            // doesn't already clip this, force it here
+            // so a rounded card never shows the
+            // Calendar's own square background peeking
+            // out at the corners in dark mode.
+            { overflow: 'hidden' },
           ]}
         >
           <Calendar
+            // Forces the calendar to fully rebuild its
+            // internal stylesheet on theme flip instead
+            // of partially re-using a cached one — this
+            // is what fixes arrows/labels that "stick"
+            // to the old theme's colors.
+            key={darkMode ? 'calendar-dark' : 'calendar-light'}
             current={selectedDate}
             onDayPress={(day) => {
               setSelectedDate(day.dateString);
@@ -140,26 +198,8 @@ const ScheduleScreen = ({ isActive, resetSignal, darkMode, studentData }) => {
             firstDay={1}
             enableSwipeMonths={true}
             markedDates={markedDates}
-            theme={{
-              backgroundColor: theme.card,
-              calendarBackground: theme.card,
-              textSectionTitleColor: theme.secondary,
-              selectedDayBackgroundColor: darkMode ? '#FFFFFF' : '#20242B',
-              selectedDayTextColor: darkMode ? '#20242B' : '#FFFFFF',
-              todayTextColor: darkMode ? '#FFFFFF' : '#20242B',
-              dayTextColor: theme.primary,
-              textDisabledColor: darkMode ? '#555A63' : '#C7C7C7',
-              dotColor: '#8D76A8',
-              selectedDotColor: darkMode ? '#20242B' : '#FFFFFF',
-              arrowColor: theme.primary,
-              monthTextColor: theme.primary,
-              textMonthFontSize: 19,
-              textMonthFontWeight: '900',
-              textDayFontSize: 13,
-              textDayFontWeight: '600',
-              textDayHeaderFontSize: 10,
-              textDayHeaderFontWeight: '800',
-            }}
+            style={{ backgroundColor: theme.card }}
+            theme={calendarTheme}
           />
         </View>
 
