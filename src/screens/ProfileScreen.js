@@ -79,9 +79,9 @@ const ProfileScreen = ({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.sceneContent}
       >
-        <View style={styles.screenHeader}>
+        {/* <View style={styles.screenHeader}>
           <Text style={[styles.screenTitle, { color: theme.primary }]}>Profile</Text>
-        </View>
+        </View> */}
 
         <View
           style={[styles.profileCard, { backgroundColor: darkMode ? '#30283A' : '#DCCFEA' }]}

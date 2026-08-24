@@ -57,13 +57,13 @@ const ExamScreen = ({ isActive, resetSignal, darkMode, studentData }) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.sceneContent}
       >
-        <View style={styles.screenHeader}>
+        {/* <View style={styles.screenHeader}>
           <Text style={[styles.screenTitle, { color: theme.primary }]}>Examinations</Text>
         </View>
 
         <Text style={[styles.pageDescription, { color: theme.secondary }]}>
           Your upcoming examination schedule
-        </Text>
+        </Text> */}
 
         {mainExam ? (
           <View

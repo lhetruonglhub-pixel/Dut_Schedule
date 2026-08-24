@@ -516,7 +516,7 @@ const GradeScreen = ({
         {/* ==========================================
             HEADER
         ========================================== */}
-
+{/* 
         <View style={styles.screenHeader}>
           <Text
             style={[
@@ -528,7 +528,7 @@ const GradeScreen = ({
           >
             My Grades
           </Text>
-        </View>
+        </View> */}
 
         {/* ==========================================
             OVERALL GPA

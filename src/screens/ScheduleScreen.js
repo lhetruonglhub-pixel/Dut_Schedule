@@ -267,7 +267,7 @@ const ScheduleScreen = ({
         scrollEventThrottle={16}
       >
         {/* HEADER */}
-        <View style={styles.screenHeader}>
+        {/* <View style={styles.screenHeader}>
           <Text
             style={[
               styles.screenTitle,
@@ -278,7 +278,7 @@ const ScheduleScreen = ({
           >
             Your Schedule
           </Text>
-        </View>
+        </View> */}
 
         {/* CALENDAR */}
         <View
