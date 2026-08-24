@@ -2,8 +2,8 @@ import { Platform } from 'react-native';
 
 export const API_BASE_URL =
   Platform.OS === 'web'
-    ? 'https://dutbackend-tenban.azurewebsites.net'
-    : 'https://dutbackend-tenban.azurewebsites.net'; // đổi thành IP LAN máy bạn khi test trên điện thoại thật
+    ? 'http://dutbackend-tenban.azurewebsites.net'
+    : 'http://dutbackend-tenban.azurewebsites.net'; // đổi thành IP LAN máy bạn khi test trên điện thoại thật
 
 export const CURRENT_WEEK = 2;
 
