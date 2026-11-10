@@ -11,7 +11,7 @@ export default StyleSheet.create({
 
   sceneContent: {
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
 
   /* ==================== LOGIN ==================== */

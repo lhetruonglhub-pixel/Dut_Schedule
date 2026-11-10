@@ -262,7 +262,10 @@ const ScheduleScreen = ({
     >
       <ScrollView
         ref={scrollRef}
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
         contentContainerStyle={styles.sceneContent}
         scrollEventThrottle={16}
       >

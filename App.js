@@ -30,7 +30,7 @@ export default function App() {
   const [userStudentId, setUserStudentId] = useState('');
   const [studentData, setStudentData] = useState(EMPTY_STUDENT_DATA);
   const [index, setIndex] = useState(0);
-  const [darkMode, setDarkMode] = useState(false);
+  const darkMode = true;
   const [avatarUri, setAvatarUri] = useState(null);
   const [resetSignal, setResetSignal] = useState(0);
 
@@ -85,7 +85,6 @@ export default function App() {
             isActive={index === 3}
             resetSignal={resetSignal}
             darkMode={darkMode}
-            setDarkMode={setDarkMode}
             avatarUri={avatarUri}
             setAvatarUri={setAvatarUri}
             studentData={studentData}

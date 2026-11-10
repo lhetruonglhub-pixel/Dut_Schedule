@@ -4,22 +4,20 @@ export const useResetScroll = (isActive, resetSignal) => {
   const scrollRef = useRef(null);
 
   useEffect(() => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
+    if (!isActive) return undefined;
+
+    let secondFrame;
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => {
         scrollRef.current?.scrollTo({ y: 0, animated: false });
       });
     });
-  }, [resetSignal]);
 
-  useEffect(() => {
-    if (!isActive) return;
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        scrollRef.current?.scrollTo({ y: 0, animated: false });
-      });
-    });
-  }, [isActive]);
+    return () => {
+      cancelAnimationFrame(firstFrame);
+      if (secondFrame !== undefined) cancelAnimationFrame(secondFrame);
+    };
+  }, [isActive, resetSignal]);
 
   return scrollRef;
 };

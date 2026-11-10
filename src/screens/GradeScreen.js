@@ -510,7 +510,10 @@ const GradeScreen = ({
     >
       <ScrollView
         ref={scrollRef}
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
         contentContainerStyle={styles.sceneContent}
       >
         {/* ==========================================

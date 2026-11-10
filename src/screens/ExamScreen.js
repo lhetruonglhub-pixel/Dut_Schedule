@@ -54,7 +54,10 @@ const ExamScreen = ({ isActive, resetSignal, darkMode, studentData }) => {
     <View style={[styles.sceneContainer, { backgroundColor: theme.background }]}>
       <ScrollView
         ref={scrollRef}
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
         contentContainerStyle={styles.sceneContent}
       >
         {/* <View style={styles.screenHeader}>
